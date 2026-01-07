@@ -14,10 +14,13 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .info(new Info().title("Q&AI API 문서")
-                        .description("AI 기술 면접 준비 서비스 API")
+                .info(new Info().title("학교 게시판 서비스")
+                        .description("범일정보 인턴쉽 - 학교 게시판 서비스")
                         .version("1.0"))
-                .addSecurityItem(new SecurityRequirement())
+                .addSecurityItem(
+                        new SecurityRequirement().addList("bearerAuth")
+                )
+
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
