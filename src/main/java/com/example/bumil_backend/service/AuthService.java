@@ -66,7 +66,6 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-
         Users user = userRepository.findByEmailAndIsDeletedFalse(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User doesn't exist"));
 
