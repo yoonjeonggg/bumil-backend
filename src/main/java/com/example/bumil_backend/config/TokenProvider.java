@@ -22,14 +22,14 @@ public class TokenProvider {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-
     //액세스 토큰 생성
-    public String createAccessToken(String username){
+    public String createAccessToken(String username, String role){
         Date now = new Date();
         Date expiry = new Date(now.getTime() + ACCESS_TOKEN_ABILITY);
 
         return Jwts.builder()
                 .subject(username)
+                .claim("role", role)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key)
@@ -37,12 +37,13 @@ public class TokenProvider {
     }
 
     //리프레시 토큰 생성
-    public String createRefreshToken(String username){
+    public String createRefreshToken(String username, String role){
         Date now = new Date();
         Date expiry = new Date(now.getTime() + REFRESH_TOKEN_ABILITY);
 
         return Jwts.builder()
                 .subject(username)
+                .claim("role", role)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key)
@@ -59,6 +60,16 @@ public class TokenProvider {
                 .getSubject();
     }
 
+    //사용자 역할 추출
+    public String extractRole(String token) {
+        return Jwts.parser()
+                .verifyWith(this.key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
+    }
+
     //토큰 유효성 검사
     public boolean validateToken(String token){
         try{
@@ -69,25 +80,6 @@ public class TokenProvider {
             return true;
         } catch(JwtException | IllegalArgumentException e){
             return false;
-        }
-    }
-
-    //만료 기간 가져옴
-    public Long getExpiration(String token) {
-        try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(key)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-
-            Date expiration = claims.getExpiration();
-            Date now = new Date();
-
-            long remainingTime = expiration.getTime() - now.getTime();
-            return remainingTime > 0 ? remainingTime : 0L;
-        } catch (Exception e) {
-            return 0L;
         }
     }
 }

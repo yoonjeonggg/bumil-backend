@@ -34,7 +34,8 @@ public class Users {
     private String name;
 
     @Column(nullable = false)
-    private Role role;
+    @Builder.Default
+    private Role role = Role.USER;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

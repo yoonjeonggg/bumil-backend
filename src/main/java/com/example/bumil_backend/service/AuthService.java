@@ -15,6 +15,7 @@ import com.example.bumil_backend.dto.user.request.SignupRequest;
 import com.example.bumil_backend.dto.user.response.LoginResponse;
 import com.example.bumil_backend.dto.user.response.SignupResponse;
 import com.example.bumil_backend.entity.RefreshToken;
+import com.example.bumil_backend.entity.Role;
 import com.example.bumil_backend.entity.Users;
 import com.example.bumil_backend.repository.RefreshTokenRepository;
 import com.example.bumil_backend.repository.UserRepository;
@@ -69,9 +70,9 @@ public class AuthService {
         Users user = userRepository.findByEmailAndIsDeletedFalse(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User doesn't exist"));
 
-        String accessToken = tokenProvider.createAccessToken(request.getEmail());
+        String accessToken = tokenProvider.createAccessToken(user.getEmail(), String.valueOf(user.getRole()));
 
-        String refreshToken = tokenProvider.createRefreshToken(request.getEmail());
+        String refreshToken = tokenProvider.createRefreshToken(request.getEmail(), String.valueOf(user.getRole()));
 
         RefreshToken saveRefreshToken = RefreshToken.builder()
                 .token(refreshToken)
@@ -98,7 +99,8 @@ public class AuthService {
         }
 
         String username = tokenProvider.extractUsername(existingRefreshToken.getToken());
-        String newAccessToken = tokenProvider.createAccessToken(username);
+        String role = tokenProvider.extractRole(existingRefreshToken.getToken());
+        String newAccessToken = tokenProvider.createAccessToken(username, role);
 
         return RefreshResponse.builder()
                 .accessToken(newAccessToken)
