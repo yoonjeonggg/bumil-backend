@@ -1,10 +1,27 @@
 spring:
-  application:
-    name: bumil-backend
+  datasource:
+    url: jdbc:postgresql://pg-298a8fb1-bumilbongbong.i.aivencloud.com:15293/defaultdb?sslmode=require
+    username: avnadmin
+    password: AVNS_07x-g5aKwuIV_DlpCVY
+    driver-class-name: org.postgresql.Driver
 
-  profiles:
-    active:
-      - test
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  sql:
+    init:
+      mode: never
+
+  jwt:
+    secret: dGhpc19pc19teV90ZXN0X2J1bWlsX2p3dF9zZWNyZXRfa2V5
+
+application:
+  name: bumil-backend
 
 server:
   port: 8081
