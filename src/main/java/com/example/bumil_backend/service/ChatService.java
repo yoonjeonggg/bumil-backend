@@ -1,5 +1,6 @@
 package com.example.bumil_backend.service;
 
+import com.example.bumil_backend.common.exception.ResourceNotFoundException;
 import com.example.bumil_backend.dto.chat.request.ChatCreateRequest;
 import com.example.bumil_backend.dto.chat.response.ChatCreateResponse;
 import com.example.bumil_backend.entity.ChatRoom;
@@ -29,7 +30,7 @@ public class ChatService {
         String email = authentication.getName(); // JWT sub
 
         Users user = usersRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("유저를 찾을 수 없습니다."));
 
         ChatRoom chatRoom = ChatRoom.builder()
                 .title(request.getTitle())
