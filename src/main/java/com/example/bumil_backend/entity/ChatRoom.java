@@ -76,6 +76,15 @@ public class ChatRoom {
     }
 
 
+    public void setAnonymous(boolean anonymous) {
+        this.anonymous = anonymous;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+
+
     public void setTag(Tag tag) {
         this.tag = tag;
     }
