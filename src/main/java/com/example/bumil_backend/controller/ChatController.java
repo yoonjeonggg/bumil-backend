@@ -4,7 +4,7 @@ import com.example.bumil_backend.common.ApiResponse;
 import com.example.bumil_backend.dto.chat.request.ChatCloseRequest;
 import com.example.bumil_backend.dto.chat.request.ChatCreateRequest;
 import com.example.bumil_backend.dto.chat.response.ChatCreateResponse;
-import com.example.bumil_backend.dto.chat.response.PublicChatListResponse;
+import com.example.bumil_backend.dto.chat.response.ChatListResponse;
 import com.example.bumil_backend.service.ChatService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class ChatController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PublicChatListResponse>>> getPublicChatListResponse(
+    public ResponseEntity<ApiResponse<List<ChatListResponse>>> getPublicChatListResponse(
             @RequestParam(value = "datefilter", required = false) String dateFilter,
             @RequestParam(value = "tag", required = false) String tag
     ){
@@ -46,5 +46,13 @@ public class ChatController {
     ) {
         chatService.closeChat(request);
         return ApiResponse.ok(null, "채팅 상태가 변경되었습니다.");
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<ChatListResponse>>> getUserChatList(
+            @RequestParam(value = "datefilter", required = false) String dateFilter,
+            @RequestParam(value = "tag", required = false) String tag
+    ){
+        return ApiResponse.ok(chatService.getUserChatList(dateFilter, tag), "공개 채팅 목록 조회에 성공하였습니다.");
     }
 }

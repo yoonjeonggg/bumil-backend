@@ -7,9 +7,10 @@ import java.time.LocalDateTime;
 
 @Builder
 @Data
-public class PublicChatListResponse {
+public class ChatListResponse {
     private Long chatRoomId;
     private String title;
     private String tag;
+    private String author;
     private LocalDateTime createdAt;
 }
