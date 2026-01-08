@@ -6,7 +6,7 @@ import com.example.bumil_backend.dto.chat.request.ChatCreateRequest;
 import com.example.bumil_backend.dto.chat.request.ChatCloseRequest;
 import com.example.bumil_backend.dto.chat.request.ChatSettingRequest;
 import com.example.bumil_backend.dto.chat.response.ChatCreateResponse;
-import com.example.bumil_backend.dto.chat.response.PublicChatListResponse;
+import com.example.bumil_backend.dto.chat.response.ChatListResponse;
 import com.example.bumil_backend.entity.ChatRoom;
 import com.example.bumil_backend.entity.DateFilter;
 import com.example.bumil_backend.entity.Tag;
@@ -58,7 +58,7 @@ public class ChatService {
     }
 
     @Transactional(readOnly = true)
-    public List<PublicChatListResponse> getPublicChatList(String dateFilter, String tag) {
+    public List<ChatListResponse> getPublicChatList(String dateFilter, String tag) {
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         userRepository.findByEmailAndIsDeletedFalse(email)
@@ -76,10 +76,11 @@ public class ChatService {
         List<ChatRoom> chatRooms = chatRoomRepository.findByTag(searchTag, sort);
 
         return chatRooms.stream()
-                .map(chatRoom -> PublicChatListResponse.builder()
+                .map(chatRoom -> ChatListResponse.builder()
                         .chatRoomId(chatRoom.getId())
                         .title(chatRoom.getTitle())
                         .tag(chatRoom.getTag().name())
+                        .author(chatRoom.getAuthor().getName())
                         .createdAt(chatRoom.getCreatedAt())
                         .build()
                 )
@@ -98,6 +99,35 @@ public class ChatService {
         }
 
         chatRoom.setTag(request.getTag());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ChatListResponse> getUserChatList(String dateFilter, String tag) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Users author = userRepository.findByEmailAndIsDeletedFalse(email)
+                .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 유저입니다."));
+
+        // 유효성 검증
+        validateFilters(dateFilter, tag);
+
+        // 정렬 조건
+        Sort sort = "OLDEST".equals(dateFilter) ? Sort.by("createdAt").ascending() : Sort.by("createdAt").descending();
+
+        // String -> Enum
+        Tag searchTag = (tag != null && !tag.isBlank()) ? Tag.valueOf(tag.toUpperCase()) : null;
+
+        List<ChatRoom> chatRooms = chatRoomRepository.findByTagAndAuthor(searchTag, author, sort);
+
+        return chatRooms.stream()
+                .map(chatRoom -> ChatListResponse.builder()
+                        .chatRoomId(chatRoom.getId())
+                        .title(chatRoom.getTitle())
+                        .tag(chatRoom.getTag().name())
+                        .author(chatRoom.getAuthor().getName())
+                        .createdAt(chatRoom.getCreatedAt())
+                        .build()
+                )
+                .toList();
     }
 
     // 필터 검증
