@@ -5,6 +5,7 @@ import com.example.bumil_backend.dto.chat.response.ChatListDto;
 import com.example.bumil_backend.dto.user.request.AdminPasswordUpdateRequest;
 import com.example.bumil_backend.dto.user.request.UserPasswordUpdateRequest;
 import com.example.bumil_backend.dto.user.request.UserUpdateRequest;
+import com.example.bumil_backend.dto.user.response.GetAllUsersResponse;
 import com.example.bumil_backend.dto.user.response.UpdateUserPasswordResponse;
 import com.example.bumil_backend.dto.user.response.UserUpdateResponse;
 import com.example.bumil_backend.enums.ChatTags;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -60,5 +63,8 @@ public class AdminController {
         return ApiResponse.ok(result, "변경되었습니다.");
     }
 
-
+    @GetMapping("/users")
+    public ResponseEntity<ApiResponse<List<GetAllUsersResponse>>> getAllUsers(){
+        return ApiResponse.ok(adminService.getAllUsers(), "모든 유저 조회에 성공하였습니다.");
+    }
 }

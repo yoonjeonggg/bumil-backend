@@ -3,9 +3,11 @@ package com.example.bumil_backend.service;
 
 import com.example.bumil_backend.common.exception.BadRequestException;
 import com.example.bumil_backend.dto.chat.response.ChatListDto;
+import com.example.bumil_backend.dto.chat.response.ChatListResponse;
 import com.example.bumil_backend.dto.user.request.AdminPasswordUpdateRequest;
 import com.example.bumil_backend.dto.user.request.UserPasswordUpdateRequest;
 import com.example.bumil_backend.dto.user.request.UserUpdateRequest;
+import com.example.bumil_backend.dto.user.response.GetAllUsersResponse;
 import com.example.bumil_backend.dto.user.response.UpdateUserPasswordResponse;
 import com.example.bumil_backend.dto.user.response.UserUpdateResponse;
 import com.example.bumil_backend.entity.ChatRoom;
@@ -24,6 +26,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -119,4 +123,19 @@ public class AdminService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public List<GetAllUsersResponse> getAllUsers() {
+        securityUtils.getCurrentAdmin();
+
+        List<Users> users = userRepository.findAllByIsDeletedFalse();
+
+        return users.stream()
+                .map(user -> GetAllUsersResponse.builder()
+                        .userId(user.getId())
+                        .email(user.getEmail())
+                        .name(user.getName())
+                        .build()
+                )
+                .toList();
+    }
 }
