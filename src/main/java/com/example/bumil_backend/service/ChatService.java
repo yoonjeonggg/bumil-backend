@@ -32,7 +32,7 @@ public class ChatService {
 
         String email = authentication.getName(); // JWT sub
 
-        Users user = userRepository.findByEmail(email)
+        Users user = userRepository.findByEmailAndIsDeletedFalse(email)
                 .orElseThrow(() -> new ResourceNotFoundException("유저를 찾을 수 없습니다."));
 
         ChatRoom chatRoom = ChatRoom.builder()
