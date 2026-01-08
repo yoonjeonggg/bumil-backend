@@ -37,7 +37,7 @@ public class ChatRoom {
 
     @Column(name = "is_public", nullable = false)
     @Builder.Default
-    private boolean isPublic = true;
+    private boolean isPublic = false;
 
     @Column(nullable = false)
     @Builder.Default
