@@ -74,7 +74,7 @@ public class ChatService {
         // String -> Enum
         Tag searchTag = (tag != null && !tag.isBlank()) ? Tag.valueOf(tag.toUpperCase()) : null;
 
-        List<ChatRoom> chatRooms = chatRoomRepository.findByTag(searchTag, sort);
+        List<ChatRoom> chatRooms = chatRoomRepository.findAllByTagAndIsDeletedFalse(searchTag, sort);
 
         return chatRooms.stream()
                 .map(chatRoom -> ChatListResponse.builder()
@@ -117,7 +117,7 @@ public class ChatService {
         // String -> Enum
         Tag searchTag = (tag != null && !tag.isBlank()) ? Tag.valueOf(tag.toUpperCase()) : null;
 
-        List<ChatRoom> chatRooms = chatRoomRepository.findByTagAndAuthor(searchTag, author, sort);
+        List<ChatRoom> chatRooms = chatRoomRepository.findByTagAndAuthorAndIsDeletedFalse(searchTag, author, sort);
 
         return chatRooms.stream()
                 .map(chatRoom -> ChatListResponse.builder()

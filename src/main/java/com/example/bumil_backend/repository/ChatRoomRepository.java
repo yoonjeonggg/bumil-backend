@@ -22,15 +22,25 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     // 모든 채팅 조회
     Page<ChatRoom> findAllByIsDeletedFalse(Pageable pageable);
 
-    @Query("SELECT c FROM ChatRoom c WHERE :tag IS NULL OR c.tag = :tag")
-    List<ChatRoom> findByTag(@Param("tag") Tag tag, Sort sort);
+    @Query("""
+            SELECT c FROM ChatRoom c
+            WHERE c.isDeleted = false
+            AND (:tag IS NULL OR c.tag = :tag)
+           """)
+    List<ChatRoom> findAllByTagAndIsDeletedFalse(@Param("tag") Tag tag, Sort sort);
 
-    @Query("SELECT c FROM ChatRoom c WHERE (:tag IS NULL OR c.tag = :tag) AND c.author = :author")
-    List<ChatRoom> findByTagAndAuthor(
+    @Query("""
+            SELECT c FROM ChatRoom c
+            WHERE c.isDeleted = false
+            AND (:tag IS NULL OR c.tag = :tag)
+            AND c.author = :author
+           """)
+    List<ChatRoom> findByTagAndAuthorAndIsDeletedFalse(
             @Param("tag") Tag tag,
             @Param("author") Users author,
             Sort sort
     );
+
 
 }
 
