@@ -1,6 +1,7 @@
 package com.example.bumil_backend.controller;
 
 import com.example.bumil_backend.common.ApiResponse;
+import com.example.bumil_backend.dto.chat.ChatReactionResponse;
 import com.example.bumil_backend.dto.chat.request.ChatCloseRequest;
 import com.example.bumil_backend.dto.chat.request.ChatCreateRequest;
 import com.example.bumil_backend.dto.chat.request.ChatSettingRequest;
@@ -77,9 +78,9 @@ public class ChatController {
         return ApiResponse.ok(null, "채팅이 삭제되었습니다.");
     }
 
-//    @PatchMapping("/{chatId}")
-//    @Operation(summary = "리액션 설정", description = "공개된 채팅방에 리액션 설정 API")
-//    public ResponseEntity<ApiResponse<ChatReactionResponse>> reaction(@RequestBody @Valid ChatReactionRequest request){
-//        chatService.reaction(request);
-//    }
+    @PatchMapping("/{chatId}")
+    @Operation(summary = "리액션 설정", description = "공개된 채팅방에 리액션 설정 API")
+    public ResponseEntity<ApiResponse<ChatReactionResponse>> reaction(@RequestBody @Valid ChatReactionRequest request){
+        chatService.reaction(request);
+    }
 }

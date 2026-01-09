@@ -1,15 +1,13 @@
 package com.example.bumil_backend.controller;
 
 import com.example.bumil_backend.common.ApiResponse;
-import com.example.bumil_backend.dto.chat.MessageListDto;
-import com.example.bumil_backend.dto.chat.request.MessageRequest;
+import com.example.bumil_backend.dto.message.MessageListDto;
+import com.example.bumil_backend.dto.message.MessageRequest;
 import com.example.bumil_backend.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;

@@ -1,4 +1,4 @@
-package com.example.bumil_backend.dto.chat;
+package com.example.bumil_backend.dto.message;
 
 import com.example.bumil_backend.entity.ChatMessage;
 import com.example.bumil_backend.entity.ChatRoom;

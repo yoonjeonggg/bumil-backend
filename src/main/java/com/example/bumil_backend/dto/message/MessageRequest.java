@@ -1,4 +1,4 @@
-package com.example.bumil_backend.dto.chat.request;
+package com.example.bumil_backend.dto.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

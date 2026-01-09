@@ -1,9 +1,9 @@
 package com.example.bumil_backend.service;
 
 import com.example.bumil_backend.common.exception.*;
-import com.example.bumil_backend.dto.chat.ChatMessageDto;
-import com.example.bumil_backend.dto.chat.MessageListDto;
-import com.example.bumil_backend.dto.chat.request.MessageRequest;
+import com.example.bumil_backend.dto.message.ChatMessageDto;
+import com.example.bumil_backend.dto.message.MessageListDto;
+import com.example.bumil_backend.dto.message.MessageRequest;
 import com.example.bumil_backend.entity.ChatMessage;
 import com.example.bumil_backend.entity.ChatRoom;
 import com.example.bumil_backend.entity.Users;
