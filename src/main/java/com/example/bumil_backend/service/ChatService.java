@@ -3,18 +3,23 @@ package com.example.bumil_backend.service;
 import com.example.bumil_backend.common.exception.BadRequestException;
 import com.example.bumil_backend.common.exception.NotAcceptableUserException;
 import com.example.bumil_backend.common.exception.ResourceNotFoundException;
+import com.example.bumil_backend.dto.chat.response.ChatReactionResponse;
 import com.example.bumil_backend.dto.chat.request.ChatCreateRequest;
 import com.example.bumil_backend.dto.chat.request.ChatCloseRequest;
+import com.example.bumil_backend.dto.chat.request.ChatReactionRequest;
 import com.example.bumil_backend.dto.chat.request.ChatSettingRequest;
 import com.example.bumil_backend.dto.chat.response.ChatCreateResponse;
 import com.example.bumil_backend.dto.chat.response.ChatListResponse;
 import com.example.bumil_backend.dto.chat.response.PublicChatListResponse;
 import com.example.bumil_backend.entity.ChatRoom;
+import com.example.bumil_backend.entity.ChatRoomReaction;
 import com.example.bumil_backend.entity.DateFilter;
 import com.example.bumil_backend.entity.Users;
 import com.example.bumil_backend.enums.ChatTags;
+import com.example.bumil_backend.enums.ReactionType;
 import com.example.bumil_backend.enums.Role;
 import com.example.bumil_backend.enums.Tag;
+import com.example.bumil_backend.repository.ChatRoomReactionRepository;
 import com.example.bumil_backend.repository.ChatRoomRepository;
 import com.example.bumil_backend.repository.UserRepository;
 import com.example.bumil_backend.security.SecurityUtils;
@@ -35,6 +40,7 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final UserRepository userRepository;
     private final SecurityUtils securityUtils;
+    private final ChatRoomReactionRepository chatRoomReactionRepository;
 
     // 채팅방 생성
     public ChatCreateResponse createChat(ChatCreateRequest request) {
@@ -104,7 +110,7 @@ public class ChatService {
             throw new BadRequestException("이미 처리된 채팅방입니다.");
         }
 
-        chatRoom.setTag(request.getTag());
+        chatRoom.changeTag(request.getTag());
     }
 
     @Transactional(readOnly = true)
@@ -178,7 +184,7 @@ public class ChatService {
         }
 
         if (request.getIsAnonymous() != null) {
-            chatRoom.setAnonymous(request.getIsAnonymous());
+            chatRoom.changeAnonymous(request.getIsAnonymous());
         }
 
         if (request.getIsPublic() != null) {
@@ -223,4 +229,63 @@ public class ChatService {
                 .toList();
     }
 
+    @Transactional
+    public ChatReactionResponse reaction(ChatReactionRequest request) {
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        Users user = userRepository.findByEmailAndIsDeletedFalse(email)
+                .orElseThrow(() -> new ResourceNotFoundException("유저를 찾을 수 없습니다."));
+
+        ChatRoom chatRoom = chatRoomRepository.findByIdAndIsDeletedFalseAndIsPublicTrue(request.getChatRoomId())
+                .orElseThrow(() -> new ResourceNotFoundException("해당 채팅방을 찾을 수 없습니다."));
+
+        ChatRoomReaction existingReaction =
+                chatRoomReactionRepository.findByUserAndChatRoom(user, chatRoom);
+
+        //유저가 리액션을 누르지 않은 경우
+        if(existingReaction == null){
+            ChatRoomReaction savedReaction = ChatRoomReaction.builder()
+                    .chatRoom(chatRoom)
+                    .user(user)
+                    .reactionType(request.getReactionType())
+                    .build();
+
+            chatRoomReactionRepository.save(savedReaction);
+            user.addReaction(savedReaction);
+            chatRoom.addReaction(savedReaction);
+        }
+
+        //유저가 이미 리액션을 누른 경우
+        // 기존 리액션이 있는 경우
+        else if (existingReaction.getReactionType() == request.getReactionType()) {
+            // 같은 리액션 -> 해제
+            chatRoomReactionRepository.delete(existingReaction);
+            user.removeReaction(existingReaction);
+            chatRoom.removeReaction(existingReaction);
+        } else {
+            // 다른 리액션 -> 수정
+            existingReaction.changeReactionType(request.getReactionType());
+        }
+
+        return countingReactions(chatRoom);
+    }
+
+    private ChatReactionResponse countingReactions(ChatRoom chatRoom) {
+
+        Integer likeCnt = (int) chatRoom.getReactions().stream()
+                .filter(r -> r.getReactionType() == ReactionType.LIKE)
+                .count();
+
+        Integer dislikeCnt = (int) chatRoom.getReactions().stream()
+                .filter(r -> r.getReactionType() == ReactionType.DISLIKE)
+                .count();
+
+        return ChatReactionResponse.builder()
+                .chatRoomId(chatRoom.getId())
+                .likeCnt(likeCnt)
+                .dislikeCnt(dislikeCnt)
+                .build();
+    }
 }

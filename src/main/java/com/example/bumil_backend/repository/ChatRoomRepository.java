@@ -58,6 +58,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     List<ChatRoom> searchPublicChatsByTitle(@Param("keyword") String keyword);
 
 
+    Optional<ChatRoom> findByIdAndIsDeletedFalseAndIsPublicTrue(Long chatRoomId);
 }
 
 
