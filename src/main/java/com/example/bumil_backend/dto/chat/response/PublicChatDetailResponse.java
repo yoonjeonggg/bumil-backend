@@ -15,6 +15,8 @@ import java.util.List;
 @Builder
 public class PublicChatDetailResponse {
     private Long chatRoomId;
+    private Integer likeCnt;
+    private Integer dislikeCnt;
     private String title;
     private String tag;
     private List<ChatMessageDto> items;
@@ -22,11 +24,15 @@ public class PublicChatDetailResponse {
 
     public static PublicChatDetailResponse from(
             ChatRoom chatRoom,
-            List<ChatMessage> messages
+            List<ChatMessage> messages,
+            Integer likeCnt,
+            Integer dislikeCnt
     ) {
         return PublicChatDetailResponse.builder()
                 .chatRoomId(chatRoom.getId())
                 .title(chatRoom.getTitle())
+                .likeCnt(likeCnt)
+                .dislikeCnt(dislikeCnt)
                 .tag(chatRoom.getTag().name())
                 .items(
                         ChatMessageDto.from(

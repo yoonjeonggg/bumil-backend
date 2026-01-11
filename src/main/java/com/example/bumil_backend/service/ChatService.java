@@ -3,6 +3,7 @@ package com.example.bumil_backend.service;
 import com.example.bumil_backend.common.exception.BadRequestException;
 import com.example.bumil_backend.common.exception.NotAcceptableUserException;
 import com.example.bumil_backend.common.exception.ResourceNotFoundException;
+import com.example.bumil_backend.dto.chat.reaction.ReactionCount;
 import com.example.bumil_backend.dto.chat.request.ChatCreateRequest;
 import com.example.bumil_backend.dto.chat.request.ChatCloseRequest;
 import com.example.bumil_backend.dto.chat.request.ChatReactionRequest;
@@ -107,19 +108,13 @@ public class ChatService {
         return chatRooms.stream()
                 .map(chatRoom -> {
 
-                    int likeCnt = (int) chatRoom.getReactions().stream()
-                            .filter(r -> r.getReactionType() == ReactionType.LIKE)
-                            .count();
-
-                    int dislikeCnt = (int) chatRoom.getReactions().stream()
-                            .filter(r -> r.getReactionType() == ReactionType.DISLIKE)
-                            .count();
+                    ReactionCount reactionCount = countReactions(chatRoom);
 
                     return ChatListResponse.builder()
                             .chatRoomId(chatRoom.getId())
                             .best(chatRoom.getId().equals(bestChatRoomId))
-                            .likeCnt(likeCnt)
-                            .dislikeCnt(dislikeCnt)
+                            .likeCnt(reactionCount.getLikeCnt())
+                            .dislikeCnt(reactionCount.getDislikeCnt())
                             .title(chatRoom.getTitle())
                             .tag(chatRoom.getTag().name())
                             .author(chatRoom.getAuthor().getName())
@@ -127,6 +122,7 @@ public class ChatService {
                             .build();
                 })
                 .toList();
+
     }
 
     // 채팅방 상태 병경(준비중-> 채택, 반려, 종료)
@@ -349,6 +345,33 @@ public class ChatService {
         List<ChatMessage> messages =
                 chatMessageRepository.findByChatRoomAndIsDeletedFalseOrderByCreatedAtAsc(chatRoom);
 
-        return PublicChatDetailResponse.from(chatRoom, messages);
+        ReactionCount reactionCount = countReactions(chatRoom);
+
+        return PublicChatDetailResponse.from(
+                chatRoom,
+                messages,
+                reactionCount.getLikeCnt(),
+                reactionCount.getDislikeCnt()
+        );
     }
+
+
+    private ReactionCount countReactions(ChatRoom chatRoom) {
+        int likeCnt = 0;
+        int dislikeCnt = 0;
+
+        for (ChatRoomReaction reaction : chatRoom.getReactions()) {
+            if (reaction.getReactionType() == ReactionType.LIKE) {
+                likeCnt++;
+            } else if (reaction.getReactionType() == ReactionType.DISLIKE) {
+                dislikeCnt++;
+            }
+        }
+
+        return ReactionCount.builder()
+                .likeCnt(likeCnt)
+                .dislikeCnt(dislikeCnt)
+                .build();
+    }
+
 }
