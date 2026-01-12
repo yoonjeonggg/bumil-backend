@@ -2,13 +2,9 @@ package com.example.bumil_backend.service;
 
 
 import com.example.bumil_backend.common.exception.BadRequestException;
+import com.example.bumil_backend.dto.chat.request.UserUpdateForAdminRequest;
 import com.example.bumil_backend.dto.chat.response.ChatListDto;
-import com.example.bumil_backend.dto.chat.response.ChatListResponse;
-import com.example.bumil_backend.dto.user.request.AdminPasswordUpdateRequest;
-import com.example.bumil_backend.dto.user.request.UserPasswordUpdateRequest;
-import com.example.bumil_backend.dto.user.request.UserUpdateRequest;
 import com.example.bumil_backend.dto.user.response.GetAllUsersResponse;
-import com.example.bumil_backend.dto.user.response.UpdateUserPasswordResponse;
 import com.example.bumil_backend.dto.user.response.UserUpdateResponse;
 import com.example.bumil_backend.entity.ChatRoom;
 import com.example.bumil_backend.entity.Users;
@@ -88,39 +84,31 @@ public class AdminService {
 
     // 회원 정보 수정
     @Transactional
-    public UserUpdateResponse patchUser(Long userId, UserUpdateRequest request) {
+    public UserUpdateResponse patchUser(Long userId, UserUpdateForAdminRequest request) {
         securityUtils.getCurrentAdmin();
+
         Users patchUser = userRepository.findByIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 유저입니다."));
+
         if (request.getEmail() != null) {
             patchUser.setEmail(request.getEmail());
         }
         if (request.getName() != null) {
             patchUser.setName(request.getName());
         }
-        userRepository.save(patchUser);
-        return UserUpdateResponse.from(patchUser);
-    }
 
-    // 유저 비밀번호 변경
-    @Transactional
-    public UpdateUserPasswordResponse updateUserPassword(Long userId, AdminPasswordUpdateRequest request) {
-        securityUtils.getCurrentAdmin();
+        if(request.getNewPassword() != null){
+            if (passwordEncoder.matches(request.getNewPassword(), patchUser.getPassword())) {
+                throw new BadRequestException("새 비밀번호는 현재 비밀번호와 달라야 합니다.");
+            }
 
-        Users patchUser = userRepository.findByIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 유저입니다."));
+            String newHashedPassword = passwordEncoder.encode(request.getNewPassword());
 
-        if (passwordEncoder.matches(request.getNewPassword(), patchUser.getPassword())) {
-            throw new BadRequestException("새 비밀번호는 현재 비밀번호와 달라야 합니다.");
+            patchUser.updatePassword(newHashedPassword);
         }
 
-        String newHashedPassword = passwordEncoder.encode(request.getNewPassword());
-
-        patchUser.updatePassword(newHashedPassword);
-
-        return UpdateUserPasswordResponse.builder()
-                .userId(patchUser.getId())
-                .build();
+        userRepository.save(patchUser);
+        return UserUpdateResponse.from(patchUser);
     }
 
     @Transactional(readOnly = true)
@@ -134,6 +122,7 @@ public class AdminService {
                         .userId(user.getId())
                         .email(user.getEmail())
                         .name(user.getName())
+                        .studentNum(user.getStudentNum())
                         .build()
                 )
                 .toList();

@@ -13,4 +13,8 @@ public class UserUpdateRequest {
 
     @NotBlank
     private Integer studentNum;
+
+    @NotBlank(message = "새비밀번호를 입력해주세요.")
+    private String newPassword;
+
 }

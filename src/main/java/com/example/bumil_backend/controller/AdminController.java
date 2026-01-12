@@ -1,12 +1,9 @@
 package com.example.bumil_backend.controller;
 
 import com.example.bumil_backend.common.ApiResponse;
+import com.example.bumil_backend.dto.chat.request.UserUpdateForAdminRequest;
 import com.example.bumil_backend.dto.chat.response.ChatListDto;
-import com.example.bumil_backend.dto.user.request.AdminPasswordUpdateRequest;
-import com.example.bumil_backend.dto.user.request.UserPasswordUpdateRequest;
-import com.example.bumil_backend.dto.user.request.UserUpdateRequest;
 import com.example.bumil_backend.dto.user.response.GetAllUsersResponse;
-import com.example.bumil_backend.dto.user.response.UpdateUserPasswordResponse;
 import com.example.bumil_backend.dto.user.response.UserUpdateResponse;
 import com.example.bumil_backend.enums.ChatTags;
 import com.example.bumil_backend.enums.DateFilter;
@@ -50,17 +47,9 @@ public class AdminController {
     @PatchMapping("/{userId}")
     @Operation(summary = "회원 정보 수정", description = "회원 정보 시 사용하는 API 입니다.")
     public ResponseEntity<ApiResponse<UserUpdateResponse>> patchUser
-            (@PathVariable Long userId, @RequestBody  UserUpdateRequest request) {
+            (@PathVariable Long userId, @RequestBody UserUpdateForAdminRequest request) {
         UserUpdateResponse result = adminService.patchUser(userId, request);
         return ApiResponse.ok(result, "수정되었습니다.");
-    }
-
-    @PatchMapping("/password/{userId}")
-    @Operation(summary = "회원 비밀번호 변경", description = "회원 비밀번호 변경 시 사용하는 API 입니다.")
-    public ResponseEntity<ApiResponse<UpdateUserPasswordResponse>> updateUserPassword
-            (@PathVariable Long userId, @RequestBody AdminPasswordUpdateRequest request) {
-        UpdateUserPasswordResponse result = adminService.updateUserPassword(userId, request);
-        return ApiResponse.ok(result, "변경되었습니다.");
     }
 
     @GetMapping("/users")
