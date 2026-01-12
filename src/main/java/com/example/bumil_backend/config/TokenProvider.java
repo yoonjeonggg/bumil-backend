@@ -22,7 +22,7 @@ public class TokenProvider {
     }
 
     //액세스 토큰 생성
-    public String createAccessToken(String email, String role, String name){
+    public String createAccessToken(String email, String role, String name, Long id){
         Date now = new Date();
         Date expiry = new Date(now.getTime() + ACCESS_TOKEN_ABILITY);
 
@@ -30,6 +30,7 @@ public class TokenProvider {
                 .subject(email)
                 .claim("role", role)
                 .claim("name", name)
+                .claim("id", id)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key)
@@ -78,6 +79,16 @@ public class TokenProvider {
                 .parseSignedClaims(token)
                 .getPayload()
                 .get("name", String.class);
+    }
+
+    //이름 추출
+    public Long extractUserId(String token) {
+        return Jwts.parser()
+                .verifyWith(this.key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("id", Long.class);
     }
 
     //토큰 유효성 검사

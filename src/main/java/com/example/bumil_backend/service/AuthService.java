@@ -81,7 +81,8 @@ public class AuthService {
         String accessToken = tokenProvider.createAccessToken(
                 user.getEmail(),
                 user.getRole().name(),
-                user.getName()
+                user.getName(),
+                user.getId()
         );
 
         // RT 생성
@@ -137,7 +138,8 @@ public class AuthService {
         String email = tokenProvider.extractEmail(existingRefreshToken.getToken());
         String role = tokenProvider.extractRole(existingRefreshToken.getToken());
         String name = tokenProvider.extractName(existingRefreshToken.getToken());
-        String newAccessToken = tokenProvider.createAccessToken(email, role, name);
+        Long id = tokenProvider.extractUserId(existingRefreshToken.getToken());
+        String newAccessToken = tokenProvider.createAccessToken(email, role, name, id);
 
         return RefreshResponse.builder()
                 .accessToken(newAccessToken)
