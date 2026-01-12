@@ -10,11 +10,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -68,7 +72,25 @@ public class MessageController {
         return "Swagger 표시용 엔드포인트입니다.";
     }
 
+    @SubscribeMapping("/chat/room/{roomId}")
+    public void subscribe(@DestinationVariable String roomId, SimpMessageHeaderAccessor accessor) {
+        Principal principal = accessor.getUser();
+        if (principal == null) {
+            System.out.println("구독 시 인증 정보 없음, 구독 무시 또는 예외 처리");
+            return;
+        }
+        try {
+            Long roomIdLong = Long.valueOf(roomId);
+            messageService.checkRoomAccess(roomIdLong, principal);
+        } catch (NumberFormatException e) {
+            System.out.println("roomId가 숫자가 아님: " + roomId);
+            return;
+        }
+    }
+
+
     @MessageMapping("/chat/send")
+    @SendTo("/sub/chat/room/{roomId}")
     @Operation(summary = "채팅방 메시지 전송", description = "채팅방 메시지 전송 시 사용하는 API 입니다.")
     public void sendMessage(@Payload MessageRequest request, SimpMessageHeaderAccessor accessor) {
         messageService.sendMessage(request, accessor);

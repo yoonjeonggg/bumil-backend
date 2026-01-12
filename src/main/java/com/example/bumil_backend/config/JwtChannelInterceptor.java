@@ -9,6 +9,7 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
@@ -24,46 +25,46 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
     private static final String AUTH_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
 
+
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
-        // CONNECT 요청 처리
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             String token = extractToken(accessor);
-            if (token == null) {
-                token = (String) accessor.getSessionAttributes().get("token");
-            } if (token == null) {
-                throw new JwtTokenNotFoundException("Access Token이 없습니다.");
-            } if (token == null || !tokenProvider.validateToken(token)) {
-                throw new JwtAuthenticationException("유효하지 않은 Access Token입니다.");
+
+            if (token == null || !tokenProvider.validateToken(token)) {
+                throw new JwtAuthenticationException("유효하지 않은 토큰입니다.");
             }
 
             String username = tokenProvider.extractEmail(token);
-            if (username == null || username.isEmpty()) {
-                throw new JwtAuthenticationException("이메일을 추출할 수 없습니다.");
-            }
-
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        }
-        if (StompCommand.SEND.equals(accessor.getCommand())) {
 
-            // principal 이 null 이면 세션에서 복구
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+            accessor.setUser(authentication);
+            accessor.getSessionAttributes().put("userPrincipal", authentication);
+        }
+
+        if (StompCommand.SEND.equals(accessor.getCommand()) ||
+                StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+
             if (accessor.getUser() == null) {
                 Object saved = accessor.getSessionAttributes().get("userPrincipal");
-
                 if (saved instanceof Principal savedUser) {
                     accessor.setUser(savedUser);
                 }
             }
+
+            // 여전히 유저 정보가 없다면 인증 실패 처리
             if (accessor.getUser() == null) {
-                throw new AccessDeniedException("STOMP SEND 인증 실패");
+                throw new AccessDeniedException("인증 정보가 없습니다. 다시 로그인해주세요.");
             }
         }
 
         return message;
     }
-
 
     private String extractToken(StompHeaderAccessor accessor) {
         String authHeader = accessor.getFirstNativeHeader(AUTH_HEADER);

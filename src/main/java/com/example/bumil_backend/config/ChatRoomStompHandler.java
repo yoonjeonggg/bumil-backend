@@ -1,12 +1,12 @@
 package com.example.bumil_backend.config;
 
-import com.example.bumil_backend.common.exception.NotAcceptableUserException;
-import com.example.bumil_backend.common.exception.NotLoggedInException;
-import com.example.bumil_backend.common.exception.ResourceNotFoundException;
+import com.example.bumil_backend.common.exception.*;
 import com.example.bumil_backend.entity.ChatRoom;
 import com.example.bumil_backend.entity.Users;
 import com.example.bumil_backend.enums.Role;
 import com.example.bumil_backend.repository.ChatRoomRepository;
+import com.example.bumil_backend.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -20,6 +20,9 @@ import org.springframework.stereotype.Component;
 public class ChatRoomStompHandler implements ChannelInterceptor {
 
     private final ChatRoomRepository chatRoomRepository;
+    private final TokenProvider tokenProvider;
+    private final UserRepository userRepository;
+
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -28,6 +31,24 @@ public class ChatRoomStompHandler implements ChannelInterceptor {
         String destination = accessor.getDestination();
 
         if (StompCommand.CONNECT.equals(command)) {
+            String token = accessor.getFirstNativeHeader("Authorization");
+            if (token == null || !token.startsWith("Bearer ")) {
+                throw new JwtAuthenticationException("토큰이 필요합니다.");
+            }
+
+            token = token.substring(7); // "Bearer " 제거
+
+            if (!tokenProvider.validateToken(token)) {
+                throw new JwtAuthenticationException("유효하지 않은 토큰입니다.");
+            }
+
+            String email = tokenProvider.extractEmail(token);
+            Users user = userRepository.findByEmailAndIsDeletedFalse(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+
+            // 세션에 user 저장
+            accessor.getSessionAttributes().put("user", user);
+
             return message;
         }
 
@@ -35,12 +56,22 @@ public class ChatRoomStompHandler implements ChannelInterceptor {
             return message;
         }
 
-        // 연결, 전송 검증
-        if (StompCommand.SUBSCRIBE.equals(command) || StompCommand.SEND.equals(command)) {
-
+        if (StompCommand.SUBSCRIBE.equals(command)) {
             Long chatRoomId = extractRoomId(destination);
             Users user = (Users) accessor.getSessionAttributes().get("user");
+            validateChatAccess(chatRoomId, user);
+        }
 
+        if (StompCommand.SEND.equals(command)) {
+            String payload = new String((byte[]) message.getPayload());
+            Long chatRoomId;
+            try {
+                chatRoomId = new ObjectMapper().readTree(payload).get("roomId").asLong();
+            } catch (Exception e) {
+                throw new IllegalArgumentException("SEND 메시지에 roomId가 필요합니다.");
+            }
+
+            Users user = (Users) accessor.getSessionAttributes().get("user");
             validateChatAccess(chatRoomId, user);
         }
 
