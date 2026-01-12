@@ -1,6 +1,5 @@
 package com.example.bumil_backend.config;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -23,13 +22,14 @@ public class TokenProvider {
     }
 
     //액세스 토큰 생성
-    public String createAccessToken(String username, String role){
+    public String createAccessToken(String email, String role, String name){
         Date now = new Date();
         Date expiry = new Date(now.getTime() + ACCESS_TOKEN_ABILITY);
 
         return Jwts.builder()
-                .subject(username)
+                .subject(email)
                 .claim("role", role)
+                .claim("name", name)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key)
@@ -51,7 +51,7 @@ public class TokenProvider {
     }
 
     //사용자 정보 추출
-    public String extractUsername(String token) {
+    public String extractEmail(String token) {
         return Jwts.parser()
                 .verifyWith(this.key)
                 .build()
@@ -68,6 +68,16 @@ public class TokenProvider {
                 .parseSignedClaims(token)
                 .getPayload()
                 .get("role", String.class);
+    }
+
+    //이름 추출
+    public String extractName(String token) {
+        return Jwts.parser()
+                .verifyWith(this.key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("name", String.class);
     }
 
     //토큰 유효성 검사

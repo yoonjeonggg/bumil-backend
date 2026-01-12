@@ -80,7 +80,8 @@ public class AuthService {
         //AT 생성
         String accessToken = tokenProvider.createAccessToken(
                 user.getEmail(),
-                user.getRole().name()
+                user.getRole().name(),
+                user.getName()
         );
 
         // RT 생성
@@ -133,9 +134,10 @@ public class AuthService {
             throw new InvalidTokenException("토큰이 만료되었습니다.");
         }
 
-        String username = tokenProvider.extractUsername(existingRefreshToken.getToken());
+        String email = tokenProvider.extractEmail(existingRefreshToken.getToken());
         String role = tokenProvider.extractRole(existingRefreshToken.getToken());
-        String newAccessToken = tokenProvider.createAccessToken(username, role);
+        String name = tokenProvider.extractName(existingRefreshToken.getToken());
+        String newAccessToken = tokenProvider.createAccessToken(email, role, name);
 
         return RefreshResponse.builder()
                 .accessToken(newAccessToken)
@@ -171,7 +173,7 @@ public class AuthService {
             throw new InvalidTokenException("유효하지 않거나 만료된 Access Token입니다.");
         }
 
-        String email = tokenProvider.extractUsername(accessToken);
+        String email = tokenProvider.extractEmail(accessToken);
 
         Users user = userRepository.findByEmailAndIsDeletedFalse(email)
                 .orElseThrow(() -> new UsernameNotFoundException("유저가 존재하지 않습니다."));

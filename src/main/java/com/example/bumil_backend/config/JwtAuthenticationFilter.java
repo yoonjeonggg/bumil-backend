@@ -50,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 throw new JwtAuthenticationException("유효하지 않은 Access Token입니다.");
             }
 
-            String username = tokenProvider.extractUsername(token);
+            String username = tokenProvider.extractEmail(token);
             if (username == null || username.isEmpty()) {
                 throw new JwtAuthenticationException("이메일을 추출할 수 없습니다.");
             }
