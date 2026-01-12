@@ -25,8 +25,8 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "Get User Detail", description = "유저 정보 상세 조회 API")
-    public ResponseEntity<ApiResponse<UserDetailResponse>> getUserDetail(HttpServletRequest httpServletRequest){
-        UserDetailResponse response = userService.getUserDetail(httpServletRequest);
+    public ResponseEntity<ApiResponse<UserDetailResponse>> getUserDetail(){
+        UserDetailResponse response = userService.getUserDetail();
         return ApiResponse.ok(response, "회원 정보를 성공적으로 조회하였습니다.");
     }
 
@@ -39,8 +39,8 @@ public class UserController {
 
     @PatchMapping("/password")
     @Operation(summary = "Update User Password", description = "유저 비밀번호 수정 API")
-    public ResponseEntity<ApiResponse<UpdateUserPasswordResponse>> updateUserPassword(HttpServletRequest httpServletRequest, @Valid @RequestBody UserPasswordUpdateRequest request){
-        UpdateUserPasswordResponse response = userService.updateUserPassword(httpServletRequest, request);
+    public ResponseEntity<ApiResponse<UpdateUserPasswordResponse>> updateUserPassword(@Valid @RequestBody UserPasswordUpdateRequest request){
+        UpdateUserPasswordResponse response = userService.updateUserPassword(request);
         return ApiResponse.ok(response, "비밀번호를 성공적으로 변경하였습니다.");
     }
 }

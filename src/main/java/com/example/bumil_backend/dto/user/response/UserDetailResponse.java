@@ -11,5 +11,6 @@ public class UserDetailResponse {
     private Long userId;
     private String email;
     private String name;
+    private Integer studentNum;
     private LocalDateTime createdAt;
 }

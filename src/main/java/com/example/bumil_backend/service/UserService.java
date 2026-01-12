@@ -24,7 +24,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public UserDetailResponse getUserDetail(HttpServletRequest httpServletRequest) {
+    public UserDetailResponse getUserDetail() {
         String email = SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getName();
@@ -36,6 +36,7 @@ public class UserService {
                 .userId(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
+                .studentNum(user.getStudentNum())
                 .createdAt(user.getCreatedAt())
                 .build();
     }
@@ -65,7 +66,7 @@ public class UserService {
     }
 
     @Transactional
-    public UpdateUserPasswordResponse updateUserPassword(HttpServletRequest httpServletRequest, UserPasswordUpdateRequest request) {
+    public UpdateUserPasswordResponse updateUserPassword(UserPasswordUpdateRequest request) {
         String email = SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getName();
