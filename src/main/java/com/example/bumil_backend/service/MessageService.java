@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,14 @@ public class MessageService {
     private final ChatRoomRepository chatRoomRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final SecurityUtils securityUtils;
+
+    public void checkRoomAccess(Long roomId, Principal principal) {
+        ChatRoom room = chatRoomRepository.findByIdAndIsDeletedFalse(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("채팅방 없음"));
+
+        if(principal == null) throw new AccessDeniedException("인증이 필요합니다.");
+        // 필요 시 권한 체크
+    }
 
     @Transactional
     public void deleteMessage(Long messageId) {

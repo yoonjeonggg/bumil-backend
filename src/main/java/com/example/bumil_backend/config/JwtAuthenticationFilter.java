@@ -27,7 +27,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         return uri.startsWith("/api/auth/") ||
                 uri.startsWith("/swagger-ui/") ||
-                uri.startsWith("/v3/api-docs");
+                uri.startsWith("/v3/api-docs") ||
+                uri.startsWith("/ws-chat");
+
     }
 
     @Override
@@ -36,13 +38,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String header = request.getHeader("Authorization");
 
         try {
-            if (header == null) {
-                throw new JwtAuthenticationException("Authorization 헤더가 없습니다.");
+            if (header == null || !header.startsWith("Bearer ")) {
+                filterChain.doFilter(request, response);
+                return;
             }
-
-            if (!header.startsWith("Bearer ")) {
-                throw new JwtAuthenticationException("Authorization 형식이 올바르지 않습니다.");
-            }
+//            if (header == null) {
+//                throw new JwtAuthenticationException("Authorization 헤더가 없습니다.");
+//            }
+//
+//            if (!header.startsWith("Bearer ")) {
+//                throw new JwtAuthenticationException("Authorization 형식이 올바르지 않습니다.");
+//            }
 
             String token = header.substring(7);
 
